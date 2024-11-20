@@ -1,0 +1,43 @@
+﻿# Data and media files
+data/audio/*
+!data/audio/.gitkeep
+data/*.tsv
+data/*.csv
+*.mp3
+*.wav
+*.m4a
+*.aac
+
+# Models and outputs
+models/*
+!models/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+ENV/
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+*.egg-info
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
