@@ -25,8 +25,12 @@ class Trainer:
         for batch in tqdm(self.train_loader, desc="Training"):
             self.optimizer.zero_grad()
 
-            mel_data = batch["mel_data"].to(DEVICE)
+            mel_data = batch["mel_data"].to(DEVICE).squeeze(1)
+            mel_data = mel_data.squeeze(1).permute(0, 2, 1)
             emotional_features = batch["emotional_features"].to(DEVICE)
+
+            print(f"\nmel_data shape: {mel_data.shape}")
+            print(f" \nemotional_features shape: {emotional_features.shape}")
 
             with autocast():
                 outputs = self.model(

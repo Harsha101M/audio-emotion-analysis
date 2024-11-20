@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import Dataset
 import pandas as pd
+import numpy as np
 from pathlib import Path
 from tqdm import tqdm
 from .utils import load_and_process_audio
@@ -13,7 +14,7 @@ class AudioEmotionDataset(Dataset):
         self.metadata = pd.read_csv(metadata_file, sep="\t")
 
         print("Validating audio files...")
-        self._validate_files()
+        # self._validate_files()
         print("Normalizing features...")
         self._normalize_features()
 
@@ -49,10 +50,16 @@ class AudioEmotionDataset(Dataset):
         mel_spec = mel_spec.unsqueeze(0)
 
         valence_features = torch.tensor(
-            self.metadata.iloc[idx][VALENCE_FEATURES].values, dtype=torch.float32
+            np.array(
+                self.metadata.iloc[idx][VALENCE_FEATURES].values, dtype=np.float32
+            ),
+            dtype=torch.float32,
         )
         arousal_features = torch.tensor(
-            self.metadata.iloc[idx][AROUSAL_FEATURES].values, dtype=torch.float32
+            np.array(
+                self.metadata.iloc[idx][AROUSAL_FEATURES].values, dtype=np.float32
+            ),
+            dtype=torch.float32,
         )
 
         emotional_features = torch.cat([valence_features, arousal_features])
