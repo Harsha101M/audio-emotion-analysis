@@ -34,7 +34,7 @@ def main():
     # Batch prediction example
     try:
         results = predictor.predict_batch(
-            audio_folder=AUDIO_DIR, output_folder=OUTPUTS_DIR
+            audio_folder=DATA_DIR / "test", output_folder=OUTPUTS_DIR
         )
         print(f"\nProcessed {len(results)} audio files successfully")
 
