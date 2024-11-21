@@ -15,7 +15,6 @@ class EmotionPredictor:
         self.load_model(model_path)
         self.model.eval()
 
-        # Feature names for interpretation
         self.feature_names = {
             "valence": [f.replace("V_", "") for f in VALENCE_FEATURES],
             "arousal": [f.replace("A_", "") for f in AROUSAL_FEATURES],
@@ -23,45 +22,24 @@ class EmotionPredictor:
 
     def load_model(self, model_path):
         """Load the trained model"""
-        # Fix the torch.load warning by adding weights_only=True
-        checkpoint = torch.load(model_path, map_location=DEVICE, weights_only=True)
+        checkpoint = torch.load(model_path, map_location=DEVICE)
         self.model.load_state_dict(checkpoint["model_state_dict"])
         self.model.to(DEVICE)
 
     def predict_single(self, audio_path):
-        """Make prediction for a single audio file with diagnostics"""
-        # Load and process audio
+        """Make prediction for a single audio file"""
         mel_spec = load_and_process_audio(audio_path)
         if mel_spec is None:
             raise ValueError(f"Could not process audio file: {audio_path}")
 
-        # Print mel spectrogram stats
-        print(f"\nDiagnostics for {audio_path}:")
-        print(f"Mel spectrogram shape: {mel_spec.shape}")
-        print(f"Mel spectrogram range: [{mel_spec.min():.3f}, {mel_spec.max():.3f}]")
-        print(f"Mel spectrogram mean: {mel_spec.mean():.3f}")
-        print(f"Mel spectrogram std: {mel_spec.std():.3f}")
-
+        # For CNN, keep original shape [channels, time]
         mel_spec = mel_spec.unsqueeze(0).to(DEVICE)
-        mel_spec = mel_spec.squeeze(1).permute(0, 2, 1)
         emotional_features = torch.zeros(1, NUM_EMOTIONAL_FEATURES).to(DEVICE)
 
-        # Print transformed shape
-        print(f"Input shape to model: {mel_spec.shape}")
-
         with torch.no_grad():
-            # Get intermediate activations
-            self.model.eval()
             prediction = self.model(
                 {"mel_data": mel_spec, "emotional_features": emotional_features}
             )
-
-            # Print prediction stats
-            print(
-                f"Prediction range: [{prediction.min().item():.3f}, {prediction.max().item():.3f}]"
-            )
-            print(f"Prediction mean: {prediction.mean().item():.3f}")
-            print(f"Prediction std: {prediction.std().item():.3f}")
 
         return prediction.cpu().numpy()[0]
 
@@ -162,10 +140,10 @@ class EmotionPredictor:
 
                 results[audio_file.stem] = interpreted
 
-                # self.visualize_emotions(
-                #     interpreted,
-                #     save_path=output_folder / f"{audio_file.stem}_emotion.png"
-                # )
+                self.visualize_emotions(
+                    interpreted,
+                    save_path=output_folder / f"{audio_file.stem}_emotion.png",
+                )
 
             except Exception as e:
                 print(f"Error processing {audio_file}: {str(e)}")

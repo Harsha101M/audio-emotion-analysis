@@ -2,20 +2,17 @@ import torch
 from torch.cuda.amp import autocast, GradScaler
 from pathlib import Path
 from tqdm import tqdm
-from .utils import plot_losses, save_checkpoint
+from .utils import plot_losses
 from .config import *
 
 
 class Trainer:
-    def __init__(
-        self, model, train_loader, val_loader, criterion, optimizer, save_dir=MODELS_DIR
-    ):
+    def __init__(self, model, train_loader, val_loader, criterion, optimizer):
         self.model = model.to(DEVICE)
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.criterion = criterion
         self.optimizer = optimizer
-        self.save_dir = Path(save_dir)
         self.scaler = GradScaler()
 
     def train_epoch(self):
@@ -25,12 +22,12 @@ class Trainer:
         for batch in tqdm(self.train_loader, desc="Training"):
             self.optimizer.zero_grad()
 
+            # Move data to device - no need to reshape for CNN
             mel_data = batch["mel_data"].to(DEVICE).squeeze(1)
-            mel_data = mel_data.squeeze(1).permute(0, 2, 1)
+            # mel_data = mel_data.squeeze(1).permute(
+            #     0, 2, 1
+            # )  # Shape: [batch, channels, time]
             emotional_features = batch["emotional_features"].to(DEVICE)
-
-            print(f"\nmel_data shape: {mel_data.shape}")
-            print(f" \nemotional_features shape: {emotional_features.shape}")
 
             with autocast():
                 outputs = self.model(
@@ -53,7 +50,7 @@ class Trainer:
         with torch.no_grad():
             for batch in tqdm(self.val_loader, desc="Validation"):
                 mel_data = batch["mel_data"].to(DEVICE).squeeze(1)
-                mel_data = mel_data.squeeze(1).permute(0, 2, 1)
+                # mel_data = mel_data.squeeze(1).permute(0, 2, 1)
                 emotional_features = batch["emotional_features"].to(DEVICE)
 
                 with autocast():
@@ -66,7 +63,7 @@ class Trainer:
 
         return total_loss / len(self.val_loader)
 
-    def train(self, num_epochs=NUM_EPOCHS, patience=PATIENCE):
+    def train(self, num_epochs=NUM_EPOCHS, patience=EARLY_STOPPING_PATIENCE):
         print(f"Starting training for {num_epochs} epochs...")
         best_val_loss = float("inf")
         patience_counter = 0
@@ -85,21 +82,21 @@ class Trainer:
             print(f"Training Loss: {train_loss:.4f}")
             print(f"Validation Loss: {val_loss:.4f}")
 
-            # Save checkpoint
-            save_checkpoint(
-                self.model,
-                self.optimizer,
-                epoch,
-                train_loss,
-                val_loss,
-                self.scaler,
-                self.save_dir / f"checkpoint_epoch_{epoch}.pth",
-                is_best=(val_loss < best_val_loss),
-            )
-
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 patience_counter = 0
+                torch.save(
+                    {
+                        "epoch": epoch,
+                        "model_state_dict": self.model.state_dict(),
+                        "optimizer_state_dict": self.optimizer.state_dict(),
+                        "train_loss": train_loss,
+                        "val_loss": val_loss,
+                        "scaler": self.scaler.state_dict(),
+                    },
+                    MODELS_DIR / "best_model.pth",
+                )
+                print("Saved best model!")
             else:
                 patience_counter += 1
 
@@ -108,5 +105,5 @@ class Trainer:
                 break
 
         # Plot training history
-        plot_losses(train_losses, val_losses, self.save_dir / "training_history.png")
+        plot_losses(train_losses, val_losses, OUTPUTS_DIR / "training_history.png")
         return train_losses, val_losses

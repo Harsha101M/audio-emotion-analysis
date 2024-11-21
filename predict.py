@@ -1,6 +1,6 @@
 import torch
 from pathlib import Path
-from src.model import EmotionPredictor as Model
+from src.model import EmotionCNN as Model
 from src.predictor import EmotionPredictor
 from src.config import *
 

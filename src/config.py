@@ -29,11 +29,10 @@ NUM_EMOTIONAL_FEATURES = 22
 
 # Training parameters
 BATCH_SIZE = 32
-NUM_EPOCHS = 5
 LEARNING_RATE = 0.001
-PATIENCE = 5
+NUM_EPOCHS = 5
+EARLY_STOPPING_PATIENCE = 5
 NUM_WORKERS = 4
-
 # Device configuration
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

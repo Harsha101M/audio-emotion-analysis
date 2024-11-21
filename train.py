@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from src.dataset import AudioEmotionDataset
-from src.model import EmotionPredictor
+from src.model import EmotionCNN
 from src.trainer import Trainer
 from src.config import *
 
@@ -49,7 +49,7 @@ def main():
     )
 
     # Initialize model
-    model = EmotionPredictor()
+    model = EmotionCNN()
 
     # Define loss function and optimizer
     criterion = nn.MSELoss()

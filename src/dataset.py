@@ -47,6 +47,8 @@ class AudioEmotionDataset(Dataset):
         mel_spec = load_and_process_audio(str(audio_path))
         if mel_spec is None:
             mel_spec = torch.zeros((N_MELS, DURATION * TARGET_SR // HOP_LENGTH))
+
+        # No need to reshape or permute here - CNN expects [batch, channels, time]
         mel_spec = mel_spec.unsqueeze(0)
 
         valence_features = torch.tensor(
