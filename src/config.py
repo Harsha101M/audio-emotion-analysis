@@ -4,7 +4,8 @@ from pathlib import Path
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
-AUDIO_DIR = DATA_DIR / "audio"
+#AUDIO_DIR = DATA_DIR / "audio"
+AUDIO_DIR = Path("/scratch/jespina6/music4all/audios/")
 MODELS_DIR = PROJECT_ROOT / "models"
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 
